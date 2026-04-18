@@ -1,6 +1,6 @@
-AddStateBagChangeHandler("dHeist:HeistActive", "global", function()
+AddStateBagChangeHandler("dHeist:HeistActive", "global", function(bagName, key, value)
     Citizen.CreateThread(function()
-        while GlobalState['dHeist:HeistActive'] do
+        while value do
             local playerPos = GetEntityCoords(PlayerPedId())
                 if (#(playerPos - Config.BankLocation) < 20 and IsPlayerFreeAiming(PlayerId())) then
                     print('Starting')

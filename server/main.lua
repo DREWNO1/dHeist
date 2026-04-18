@@ -65,6 +65,8 @@ end)
 RegisterNetEvent('dheist:server:getPhone')
 AddEventHandler('dheist:server:getPhone', function()
     local xPlayer = ESX.GetPlayerFromId(source)
+    if not xPlayer then return end
+    
     local hasPhone = xPlayer.getInventoryItem("dealer_phone").count
 
     if hasPhone < 1 then
