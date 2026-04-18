@@ -1,0 +1,7 @@
+RegisterNetEvent('dheist:client:heistphone:sendNotification')
+AddEventHandler('dheist:client:heistphone:sendNotification', function()
+    BeginTextCommandThefeedPost("STRING")
+    AddTextComponentSubstringPlayerName("Wygląda na to że przy wejściu do skarbca zbierają się ochroniarze!")
+    EndTextCommandThefeedPostMessagetext('CHAR_MP_DETONATEPHONE', 'CHAR_MP_DETONATEPHONE', false, 2, 'Kontakt', 'Możliwy napad na Fleccę!')
+    EndTextCommandThefeedPostTicker(false, true)
+end)
