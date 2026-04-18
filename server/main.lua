@@ -1,5 +1,10 @@
 ESX = exports["es_extended"]:getSharedObject()
 
+local Messages = {
+    heistActive = "Wygląda na to że przy wejściu do skarbca zbierają się ochroniarze!",
+    heistStarted = "Coś się dzieje w banku!"
+}
+
 local Heist = {
     id = 'seed',
     location = "bank_1",
@@ -32,7 +37,7 @@ function FinishHeist()
         
         GlobalState["dHeist:HeistActive"] = true
         
-        NotifyPhoneHolders()
+        NotifyPhoneHolders(Messages.heistActive)
     end)
 end
 
@@ -46,7 +51,7 @@ function StartHeist(player)
             local playerCoords = xPlayer.getCoords(true)
             if (#(playerCoords - Config.BankLocation) < 20) then
                 GlobalState["dHeist:HeistActive"] = false
-                print("wystartowano napad!")
+                NotifyPhoneHolders(Messages.heistStarted)
                 Citizen.Wait(1000*60)
                 FinishHeist()
             end
@@ -66,7 +71,7 @@ RegisterNetEvent('dheist:server:getPhone')
 AddEventHandler('dheist:server:getPhone', function()
     local xPlayer = ESX.GetPlayerFromId(source)
     if not xPlayer then return end
-    
+
     local hasPhone = xPlayer.getInventoryItem("dealer_phone").count
 
     if hasPhone < 1 then
@@ -77,12 +82,12 @@ AddEventHandler('dheist:server:getPhone', function()
     end
 end)
 
-function NotifyPhoneHolders()
+function NotifyPhoneHolders(message)
     local xPlayers = ESX.GetExtendedPlayers()
     for _, xPlayer in pairs(xPlayers) do
         local phoneCount = xPlayer.getInventoryItem('dealer_phone').count
         if phoneCount > 0 then
-            xPlayer.triggerEvent('dheist:client:heistphone:sendNotification')
+            xPlayer.triggerEvent('dheist:client:heistphone:sendNotification', message)
         end
     end
 end
@@ -96,6 +101,6 @@ end, false)
 AddEventHandler('onResourceStart', function()
     GlobalState["dHeist:HeistActive"] = false
     Citizen.Wait(1000)
-    NotifyPhoneHolders()
+    NotifyPhoneHolders(Messages.heistActive)
     GlobalState["dHeist:HeistActive"] = true
 end)
