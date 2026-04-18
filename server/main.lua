@@ -18,18 +18,20 @@ function FinishHeist()
     Citizen.CreateThread(function()
         local remaining = Heist.cooldown
 
+        if(Config.Debug) then remaining = Config.DebugCooldown end
+
         while remaining > 0 do
-            print(os.time())
             if (remaining == 600) then
             end
 
             Citizen.Wait(1000 * 60)
             remaining = remaining - 60
-            print("Cooldown end!")
-
-            Heist.active = true
         end
 
+        print("Cooldown end!")
+        
+        Heist.active = true
+        
         NotifyPhoneHolders()
     end)
 end
@@ -38,14 +40,19 @@ end
 
 
 function StartHeist(player)
-    print("adsd napad!")
     if(Heist.active) then
-        Heist.active = false
-        print("wystartowano napad!")
-        Citizen.Wait(1000*60)
-        FinishHeist()
+        local xPlayer = ESX.GetPlayerFromId(player)
+        if xPlayer then
+            local playerCoords = xPlayer.getCoords(true)
+            if (#(playerCoords - Config.BankLocation) < 20) then
+                Heist.active = false
+                print("wystartowano napad!")
+                Citizen.Wait(1000*60)
+                FinishHeist()
+            end
+        end
     else 
-        print("napad w trakcie!")
+        print("napad jest w trakcie!")
     end
 end
 
@@ -68,13 +75,10 @@ AddEventHandler('dheist:server:getPhone', function()
     end
 end)
 
-function NotifyPhoneHolders(message)
+function NotifyPhoneHolders()
     local xPlayers = ESX.GetExtendedPlayers()
-
-    
     for _, xPlayer in pairs(xPlayers) do
         local phoneCount = xPlayer.getInventoryItem('dealer_phone').count
-
         if phoneCount > 0 then
             xPlayer.triggerEvent('dheist:client:heistphone:sendNotification')
         end
@@ -88,5 +92,6 @@ end, false)
 
 
 AddEventHandler('onResourceStart', function()
-    FinishHeist()
+    Heist.active = true
+    NotifyPhoneHolders()
 end)
