@@ -1,4 +1,5 @@
 AddStateBagChangeHandler("dHeist:HeistActive", "global", function(bagName, key, value)
+    if not value then return end
     Citizen.CreateThread(function()
         while value do
             local playerPos = GetEntityCoords(PlayerPedId())
