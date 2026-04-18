@@ -3,7 +3,7 @@ AddStateBagChangeHandler("dHeist:HeistActive", "global", function(bagName, key, 
         while value do
             local playerPos = GetEntityCoords(PlayerPedId())
                 if (#(playerPos - Config.BankLocation) < 20 and IsPlayerFreeAiming(PlayerId())) then
-                    print('Starting')
+                    print('Starting Heist!')
                     TriggerServerEvent('dheist:server:startHeist')
                 end
 

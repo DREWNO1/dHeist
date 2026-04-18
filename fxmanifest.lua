@@ -3,7 +3,7 @@ game 'gta5'
 
 author 'Drewno <kontakt@drewno.me>'
 description 'Procedural heist system'
-version '1.0.0'
+version '0.0.1-ALPHA'
 
 shared_script {
     'config.lua',
