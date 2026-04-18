@@ -6,7 +6,7 @@ description 'Procedural heist system'
 version '1.0.0'
 
 shared_script {
-    'config.lua'
+    'config.lua',
 }
 
 client_script {

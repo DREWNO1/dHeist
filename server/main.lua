@@ -1,8 +1,7 @@
 ESX = exports["es_extended"]:getSharedObject()
 
-Heist = {
+local Heist = {
     id = 'seed',
-    active = false,
     location = "bank_1",
     cooldown = 60,
     modifiers = {},
@@ -20,6 +19,7 @@ function FinishHeist()
 
         if(Config.Debug) then remaining = Config.DebugCooldown end
 
+        print(remaining)
         while remaining > 0 do
             if (remaining == 600) then
             end
@@ -30,7 +30,7 @@ function FinishHeist()
 
         print("Cooldown end!")
         
-        Heist.active = true
+        GlobalState["dHeist:HeistActive"] = true
         
         NotifyPhoneHolders()
     end)
@@ -40,12 +40,12 @@ end
 
 
 function StartHeist(player)
-    if(Heist.active) then
+    if(GlobalState["dHeist:HeistActive"]) then
         local xPlayer = ESX.GetPlayerFromId(player)
         if xPlayer then
             local playerCoords = xPlayer.getCoords(true)
             if (#(playerCoords - Config.BankLocation) < 20) then
-                Heist.active = false
+                GlobalState["dHeist:HeistActive"] = false
                 print("wystartowano napad!")
                 Citizen.Wait(1000*60)
                 FinishHeist()
@@ -87,11 +87,13 @@ end
 
 
 ESX.RegisterCommand('heistinfo', 'admin', function(xPlayer, args, showError)
-        print("Active: ", Heist.active, ", lastHeist: ",  Heist.lastHeist)
+        print("Active: ", GlobalState["dHeist:HeistActive"], ", lastHeist: ",  Heist.lastHeist)
 end, false)
 
 
 AddEventHandler('onResourceStart', function()
-    Heist.active = true
+    GlobalState["dHeist:HeistActive"] = false
+    Citizen.Wait(1000)
     NotifyPhoneHolders()
+    GlobalState["dHeist:HeistActive"] = true
 end)

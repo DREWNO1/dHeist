@@ -1,13 +1,13 @@
-Citizen.CreateThread(function()
-    local bankLocation = Config.BankLocation
-    while true do
-        local playerPos = GetEntityCoords(PlayerPedId())
+AddStateBagChangeHandler("dHeist:HeistActive", "global", function()
+    Citizen.CreateThread(function()
+        while GlobalState['dHeist:HeistActive'] do
+            local playerPos = GetEntityCoords(PlayerPedId())
+                if (#(playerPos - Config.BankLocation) < 20 and IsPlayerFreeAiming(PlayerId())) then
+                    print('Starting')
+                    TriggerServerEvent('dheist:server:startHeist')
+                end
 
-        if (#(playerPos - bankLocation) < 20 and IsPlayerFreeAiming(PlayerId())) then
-            print('startign')
-            TriggerServerEvent('dheist:server:startHeist')
+            Citizen.Wait(1000)
         end
-
-        Citizen.Wait(1000)
-    end
+    end)
 end)
