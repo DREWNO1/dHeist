@@ -1,5 +1,7 @@
 ESX = exports["es_extended"]:getSharedObject()
 
+local guardGroup = "DHEIST_GUARDS"
+local spawnedGuards = {}
 local Messages = {
     heistActive = "Wygląda na to że przy wejściu do skarbca zbierają się ochroniarze!",
     heistStarted = "Coś się dzieje w banku!"
@@ -42,8 +44,6 @@ function FinishHeist()
 end
 
 
-
-
 function StartHeist(player)
     if(GlobalState["dHeist:HeistActive"]) then
         local xPlayer = ESX.GetPlayerFromId(player)
@@ -51,6 +51,7 @@ function StartHeist(player)
             local playerCoords = xPlayer.getCoords(true)
             if (#(playerCoords - Config.BankLocation) < 20) then
                 GlobalState["dHeist:HeistActive"] = false
+                SpawnGuards()
                 NotifyPhoneHolders(Messages.heistStarted)
                 Citizen.Wait(1000*60)
                 FinishHeist()
@@ -65,6 +66,42 @@ RegisterNetEvent('dheist:server:startHeist')
 AddEventHandler('dheist:server:startHeist', function()
     StartHeist(source)
 end)
+
+function SpawnGuards()
+    local guardsNumber = math.random(Config.MinimumGuards, #Config.BankGuards)
+    local availableGuardsPositions = {table.unpack(Config.BankGuards)}
+
+    for _, netId in ipairs(spawnedGuards) do
+        local entity = NetworkGetEntityFromNetworkId(netId)
+        if DoesEntityExists(entity) then
+            DeleteEntity(entity)
+        end
+    end
+
+    spawnedGuards = {}
+
+    for i = 1, guardsNumber do
+        if #availableGuardsPositions == 0 then break end
+
+        local randomIndex = math.random(1, #availableGuardsPositions)
+        local spawnPosition = availableGuardsPositions[randomIndex]
+        local weapons = {"WEAPON_CARBINERIFLE", "WEAPON_PUMP_SHOTGUN", "WEAPON_SMG"}
+
+        table.remove(availableGuardsPositions, randomIndex)
+
+        local model = GetHashKey(Config.GuardModel)
+        local ped = CreatePed(4, model, spawnPosition.x, spawnPosition.y, spawnPosition.z, spawnPosition.w, true, true)
+
+        local selectedWeapon = weapons[math.random(1, #weapons)]
+
+        Entity(ped).state.isHeistGuard = true
+        Entity(ped).state.guardWeapon = selectedWeapon
+        
+        table.insert(spawnedGuards, NetworkGetNetworkIdFromEntity(ped))
+    end
+
+    print("Zespawnowano strażników w ilości ", guardsNumber)
+end
 
 
 RegisterNetEvent('dheist:server:getPhone')
