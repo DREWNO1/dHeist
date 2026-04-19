@@ -18,14 +18,12 @@ local Heist = {
 function FinishHeist()
     Heist.lastHeist = os.time()
 
-    print("Zakończono napad!")
+    if Config.Debug then print("Zakończono napad!") end
 
     Citizen.CreateThread(function()
         local remaining = Heist.cooldown
 
-        if(Config.Debug) then remaining = Config.DebugCooldown end
-
-        print(remaining)
+        if(Config.Debug.activated) then remaining = Config.Debug.cooldown end
         while remaining > 0 do
             if (remaining == 600) then
             end
@@ -34,7 +32,7 @@ function FinishHeist()
             remaining = remaining - 60
         end
 
-        print("Cooldown end!")
+        if Config.Debug then print("Cooldown end!") end
         
         GlobalState["dHeist:HeistActive"] = true
         
@@ -53,11 +51,13 @@ function StartHeist(player)
                 SpawnGuards()
                 NotifyPhoneHolders(Messages.heistStarted)
                 Citizen.Wait(1000*60)
+                TriggerClientEvent('dheist:client:openVault', -1)
+                Citizen.Wait(1000*60)
                 FinishHeist()
             end
         end
     else 
-        print("napad jest w trakcie!")
+        if Config.Debug then print("napad jest w trakcie!") end
     end
 end
 
@@ -68,6 +68,10 @@ end)
 
 function SpawnGuards()
     local guardsNumber = math.random(Config.MinimumGuards, #Config.BankGuards)
+    if Config.Debug.activated and Config.Debug.limitGuards then
+        guardsNumber = Config.Debug.maxGuards
+    end
+
     local availableGuardsPositions = {table.unpack(Config.BankGuards)}
 
     for i = #spawnedGuards, 1, -1 do
@@ -84,31 +88,31 @@ function SpawnGuards()
 
         local randomIndex = math.random(1, #availableGuardsPositions)
         local spawnPosition = availableGuardsPositions[randomIndex]
-        local weapons = {"WEAPON_CARBINERIFLE", "WEAPON_PUMP_SHOTGUN", "WEAPON_SMG"}
-        local selectedWeapon = weapons[math.random(1, #weapons)]
-        
         table.remove(availableGuardsPositions, randomIndex)
 
+
+        local weapons = {"WEAPON_CARBINERIFLE", "WEAPON_SMG"}
+        local selectedWeapon = weapons[math.random(1, #weapons)]
         local model = GetHashKey(Config.GuardModel)
+
         local ped = CreatePed(4, model, spawnPosition.x, spawnPosition.y, spawnPosition.z, spawnPosition.w, true, true)
         
         local timer = 0
         while not DoesEntityExist(ped) and timer < 1000 do
-            Wait(50)
-            timer = timer + 50
+            Wait(0)
+            timer = timer + 1
         end
         
-        if DoesEntityExist(ped) then
-            local netId = NetworkGetNetworkIdFromEntity(ped)
+        local netId = NetworkGetNetworkIdFromEntity(ped)
 
-            Entity(ped).state:set('isHeistGuard', true, true)
-            Entity(ped).state:set('guardWeapon', selectedWeapon, true)
+        Entity(ped).state:set('isHeistGuard', true, true)
+        Entity(ped).state:set('guardWeapon', selectedWeapon, true)
+        Entity(ped).state:set('guardHealth', 300, true)
 
-            table.insert(spawnedGuards, netId)
-        end
+        table.insert(spawnedGuards, netId)
     end
 
-    print("Zespawnowano strażników: ", guardsNumber)
+    if Config.Debug then print("Zespawnowano strażników: ", guardsNumber) end
 end
 
 
@@ -139,7 +143,7 @@ end
 
 
 ESX.RegisterCommand('heistinfo', 'admin', function(xPlayer, args, showError)
-        print("Active: ", GlobalState["dHeist:HeistActive"], ", lastHeist: ",  Heist.lastHeist)
+        if Config.Debug then print("Active: ", GlobalState["dHeist:HeistActive"], ", lastHeist: ",  Heist.lastHeist) end
 end, false)
 
 

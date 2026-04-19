@@ -5,3 +5,4 @@ AddEventHandler('dheist:client:heistphone:sendNotification', function(message)
     EndTextCommandThefeedPostMessagetext('CHAR_MP_DETONATEPHONE', 'CHAR_MP_DETONATEPHONE', false, 2, 'Kontakt', 'Możliwy napad na Fleccę!')
     EndTextCommandThefeedPostTicker(false, true)
 end)
+
