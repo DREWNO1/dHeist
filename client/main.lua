@@ -80,12 +80,12 @@ function OpenVault()
     local door = GetDoor()
     
     if not DoesEntityExist(door) then
-        if Config.Debug then print("Nie znaleziono drzwi!") end
+        if Config.Debug.activated then print("Nie znaleziono drzwi!") end
         return
     end
     
     if not RequestControl(door) then
-        if Config.Debug then print("Brak kontroli nad drzwiami!") end
+        if Config.Debug.activated then print("Brak kontroli nad drzwiami!") end
         return
     end
     
@@ -114,7 +114,7 @@ function OpenVault()
 
         SetEntityHeading(door, (start + diff) % 360.0)
 
-        if Config.Debug then print("Skarbiec otwarty)") end
+        if Config.Debug.activated then print("Skarbiec otwarty)") end
     end)
 end
 
@@ -125,7 +125,7 @@ function CloseVault()
         FreezeEntityPosition(door, true)
         Citizen.CreateThread(function()
             SetEntityHeading(door, Config.VaultDoors.coords.w)
-            if Config.Debug then print("zamkniete") end
+            if Config.Debug.activated then print("zamkniete") end
         end)
     end
 end
@@ -213,7 +213,7 @@ AddStateBagChangeHandler("dHeist:HeistActive", "global", function(bagName, key, 
         while GlobalState['dHeist:HeistActive'] and not heistStarted do
             local playerPos = GetEntityCoords(PlayerPedId())
             if (#(playerPos - Config.BankLocation) < 20 and IsPlayerFreeAiming(PlayerId())) then
-                    if Config.Debug then print('Starting Heist!') end
+                    if Config.Debug.activated then print('Starting Heist!') end
                     heistStarted = true
                     TriggerServerEvent('dheist:server:startHeist')
                 end
@@ -241,5 +241,5 @@ RegisterCommand('clearbodies', function()
     until not success
     EndFindPed(handle)
     
-    if Config.Debug then print("Usunięto " .. count .. " ciał strażników.") end
+    if Config.Debug.activated then print("Usunięto " .. count .. " ciał strażników.") end
 end, false)

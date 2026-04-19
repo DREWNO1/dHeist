@@ -18,7 +18,7 @@ local Heist = {
 function FinishHeist()
     Heist.lastHeist = os.time()
 
-    if Config.Debug then print("Zakończono napad!") end
+    if Config.Debug.activated then print("Zakończono napad!") end
 
     Citizen.CreateThread(function()
         local remaining = Heist.cooldown
@@ -32,7 +32,7 @@ function FinishHeist()
             remaining = remaining - 60
         end
 
-        if Config.Debug then print("Cooldown end!") end
+        if Config.Debug.activated then print("Cooldown end!") end
         
         GlobalState["dHeist:HeistActive"] = true
         
@@ -57,7 +57,7 @@ function StartHeist(player)
             end
         end
     else 
-        if Config.Debug then print("napad jest w trakcie!") end
+        if Config.Debug.activated then print("napad jest w trakcie!") end
     end
 end
 
@@ -112,7 +112,7 @@ function SpawnGuards()
         table.insert(spawnedGuards, netId)
     end
 
-    if Config.Debug then print("Zespawnowano strażników: ", guardsNumber) end
+    if Config.Debug.activated then print("Zespawnowano strażników: ", guardsNumber) end
 end
 
 
@@ -143,15 +143,15 @@ end
 
 
 ESX.RegisterCommand('heistinfo', 'admin', function(xPlayer, args, showError)
-        if Config.Debug then print("Active: ", GlobalState["dHeist:HeistActive"], ", lastHeist: ",  Heist.lastHeist) end
+        if Config.Debug.activated then print("Active: ", GlobalState["dHeist:HeistActive"], ", lastHeist: ",  Heist.lastHeist) end
 end, false)
 
 
-AddEventHandler('onResourceStart', function()
-    if resourceName ~= GetCurrentResourceName() then
-        GlobalState["dHeist:HeistActive"] = false
-        Citizen.Wait(1000)
-        NotifyPhoneHolders(Messages.heistActive)
-        GlobalState["dHeist:HeistActive"] = true
-    end
+AddEventHandler('onResourceStart', function(resourceName)
+    if resourceName ~= GetCurrentResourceName() then return end
+    GlobalState["dHeist:HeistActive"] = false
+    Citizen.Wait(1000)
+    NotifyPhoneHolders(Messages.heistActive)
+    GlobalState["dHeist:HeistActive"] = true
+    
 end)
