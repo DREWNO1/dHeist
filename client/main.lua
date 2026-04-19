@@ -1,37 +1,54 @@
 local guardGroupHash = GetHashKey("DHEIST_GUARDS")
-local playerGroup = GetPedRelationshipGroupHash(PlayerPedId())
+
 Citizen.CreateThread(function()
     AddRelationshipGroup("DHEIST_GUARDS")
+    guardGroupHash = GetHashKey("DHEIST_GUARDS")
+
+    local playerGroup = GetPedRelationshipGroupHash(PlayerPedId())
+
     SetRelationshipBetweenGroups(5, guardGroupHash, playerGroup)
     SetRelationshipBetweenGroups(5, playerGroup, guardGroupHash)
 end)
 
 AddStateBagChangeHandler("isHeistGuard", nil, function(bagName, key, value)
+    if not value then return end
+
     local netId = tonumber(bagName:match("entity:(%d+)"))
     if not netId then return end
+
+    
+    local timer = 0
+    while not DoesEntityExist(netId) and timer < 5000 do 
+        Wait(100)
+        timer = timer + 100
+    end
+
+    if not NetworkDoesNetworkIdExist(netId) then return end
+    
     local entity = NetToPed(netId)
 
-    local timer = 0
-    while not DoesEntityExist(entity) and timer < 1000 do 
+    timer = 0
+    while not DoesEntityExist(entity) and timer < 2000 do
         Wait(100)
         entity = NetToPed(netId)
         timer = timer + 100
     end
-
-    if DoesEntityExist(entity) and value then     
+    if DoesEntityExist(entity) then
         SetPedRelationshipGroupHash(entity, guardGroupHash)
         
         local state = Entity(entity).state
         local weapon = state.guardWeapon or "WEAPON_CARBINERIFLE"
 
-        SetEntityMaxHealth(entity, 500)
-        SetEntityHealth(entity, 500)
+        SetEntityMaxHealth(entity, 200)
+        SetEntityHealth(entity, 200)
+        SetPedSuffersCriticalHits(entity, false)
+        SetPedCanRagdoll(entity, false)
         SetPedArmour(entity, 100)
-
         SetPedDropsWeaponsWhenDead(entity, false)
         
-        GiveWeaponToPed(entity, GetHashKey(weapon), 250, false, true)
+        GiveWeaponToPed(entity, GetHashKey(weapon), 999, false, true)
         SetCurrentPedWeapon(entity, GetHashKey(weapon), true)
+        SetPedInfiniteAmmo(entity, true, GetHashKey(weapon))
         
         SetPedCombatAttributes(entity, 0, true)
         SetPedCombatAttributes(entity, 5, true)
@@ -44,6 +61,7 @@ AddStateBagChangeHandler("isHeistGuard", nil, function(bagName, key, value)
         SetPedCombatRange(entity, 2)
         SetPedAsCop(entity, true)
         SetPedConfigFlag(entity, 100, true)
+        SetPedConfigFlag(entity, 118, false)
     end
 end)
 

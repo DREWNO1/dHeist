@@ -70,14 +70,14 @@ function SpawnGuards()
     local guardsNumber = math.random(Config.MinimumGuards, #Config.BankGuards)
     local availableGuardsPositions = {table.unpack(Config.BankGuards)}
 
-    for _, netId in ipairs(spawnedGuards) do
+    for i = #spawnedGuards, 1, -1 do
+        local netId = spawnedGuards[i]
         local entity = NetworkGetEntityFromNetworkId(netId)
         if DoesEntityExist(entity) then
             DeleteEntity(entity)
         end
+        table.remove(spawnedGuards, i)
     end
-
-    spawnedGuards = {}
 
     for i = 1, guardsNumber do
         if #availableGuardsPositions == 0 then break end
@@ -85,21 +85,30 @@ function SpawnGuards()
         local randomIndex = math.random(1, #availableGuardsPositions)
         local spawnPosition = availableGuardsPositions[randomIndex]
         local weapons = {"WEAPON_CARBINERIFLE", "WEAPON_PUMP_SHOTGUN", "WEAPON_SMG"}
-
+        local selectedWeapon = weapons[math.random(1, #weapons)]
+        
         table.remove(availableGuardsPositions, randomIndex)
 
         local model = GetHashKey(Config.GuardModel)
         local ped = CreatePed(4, model, spawnPosition.x, spawnPosition.y, spawnPosition.z, spawnPosition.w, true, true)
+        
+        local timer = 0
+        while not DoesEntityExist(ped) and timer < 1000 do
+            Wait(50)
+            timer = timer + 50
+        end
+        
+        if DoesEntityExist(ped) then
+            local netId = NetworkGetNetworkIdFromEntity(ped)
 
-        local selectedWeapon = weapons[math.random(1, #weapons)]
+            Entity(ped).state:set('isHeistGuard', true, true)
+            Entity(ped).state:set('guardWeapon', selectedWeapon, true)
 
-        Entity(ped).state.isHeistGuard = true
-        Entity(ped).state.guardWeapon = selectedWeapon
-
-        table.insert(spawnedGuards, NetworkGetNetworkIdFromEntity(ped))
+            table.insert(spawnedGuards, netId)
+        end
     end
 
-    print("Zespawnowano strażników w ilości ", guardsNumber)
+    print("Zespawnowano strażników: ", guardsNumber)
 end
 
 
@@ -135,8 +144,10 @@ end, false)
 
 
 AddEventHandler('onResourceStart', function()
-    GlobalState["dHeist:HeistActive"] = false
-    Citizen.Wait(1000)
-    NotifyPhoneHolders(Messages.heistActive)
-    GlobalState["dHeist:HeistActive"] = true
+    if resourceName ~= GetCurrentResourceName() then
+        GlobalState["dHeist:HeistActive"] = false
+        Citizen.Wait(1000)
+        NotifyPhoneHolders(Messages.heistActive)
+        GlobalState["dHeist:HeistActive"] = true
+    end
 end)
