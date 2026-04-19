@@ -1,6 +1,5 @@
 ESX = exports["es_extended"]:getSharedObject()
 
-local guardGroup = "DHEIST_GUARDS"
 local spawnedGuards = {}
 local Messages = {
     heistActive = "Wygląda na to że przy wejściu do skarbca zbierają się ochroniarze!",
@@ -73,7 +72,7 @@ function SpawnGuards()
 
     for _, netId in ipairs(spawnedGuards) do
         local entity = NetworkGetEntityFromNetworkId(netId)
-        if DoesEntityExists(entity) then
+        if DoesEntityExist(entity) then
             DeleteEntity(entity)
         end
     end
@@ -96,7 +95,7 @@ function SpawnGuards()
 
         Entity(ped).state.isHeistGuard = true
         Entity(ped).state.guardWeapon = selectedWeapon
-        
+
         table.insert(spawnedGuards, NetworkGetNetworkIdFromEntity(ped))
     end
 
